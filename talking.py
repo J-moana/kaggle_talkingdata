@@ -19,7 +19,9 @@ x_train, x_val, y_train, y_val = train_test_split(df,y,test_size=0.2)
 # y_train = y_train.transpose()
 # y_val = y_val.transpose()
 print(x_train.shape,x_val.shape,y_train.shape,y_val.shape)
-print(y_train.sum(),y_val.sum())
+print(y.len() - y.sum())
+class_weight = {0:1., 1:y.size() - y.sum()}
+del df, y
 
 model = Sequential()
 model.add(Dense(512,activation='relu',input_shape=(5,)))
@@ -29,7 +31,7 @@ model.add(Dropout(0.2))
 model.add(Dense(1,activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy',optimizer='sgd',metrics=['accuracy'])
-model.fit(x_train,y_train,batch_size=64,epochs=5,validation_data=(x_val,y_val))
+model.fit(x_train,y_train,batch_size=512,epochs=5,validation_data=(x_val,y_val),class_weight=class_weight)
 
 score, acc = model.evaluate(x_val,y_val,batch_size=32)
 print('Test score:',score)
@@ -42,7 +44,7 @@ df_sub = pd.DataFrame()
 x_test = pd.read_csv('test.csv')
 df_sub['click_id'] = x_test['click_id']
 x_test = x_test.drop(columns=['click_id','click_time'], axis=1)
-df_sub['is_attributed'] = model.predict(x_test,batch_size=64,verbose=0)
+df_sub['is_attributed'] = model.predict(x_test,batch_size=512,verbose=0)
 
 print(df_sub['is_attributed'].sum())
 # print(preds)
