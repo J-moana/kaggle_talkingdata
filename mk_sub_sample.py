@@ -5,23 +5,17 @@ import pandas as pd
 # from keras.models import Sequential
 # from keras.layers import Dense, Dropout
 # from sklearn.model_selection import train_test_split
-
+from sklearn.model_selection import train_test_split
 
 df = pd.read_csv('train.csv')
-# df = df.drop(columns=['attributed_time'], axis=1)
-
-# df_sub = df[df['is_attributed'] == 1]
-# print(df_sub.shape)
+print(df.shape)
+df, test = train_test_split(df,test_size=0.1)
+print(df.shape,test.shape)
 s = df[df['is_attributed'] == 1].shape
-
-# k = np.random.randint(0,df.shape[0],size=(df_sub.shape[0]))
-# kk = df.iloc[np.random.randint(0,df.shape[0],size=(df_sub.shape[0]))]
 
 df = pd.concat([df[df['is_attributed'] == 1], df.iloc[np.random.randint(0,df.shape[0],size=(s[0]))]])
 df = df.iloc[np.random.permutation(len(df))]
-# print(df.head(30))
-# print(df.tail(30))
-# print(df.shape)
-# print(df_sub.shape)
 
-df.to_csv('train_sampling.csv')
+
+df.to_csv('train_sampling2.csv')
+test.to_csv('train_test2.csv')
