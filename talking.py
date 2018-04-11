@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from keras.preprocessing import sequence
-from keras.models import Sequential
+from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout
 from keras import initializers
 from sklearn.model_selection import train_test_split
@@ -11,7 +11,7 @@ from keras.layers.normalization import BatchNormalization
 from keras import optimizers
 from keras.callbacks import TensorBoard
 
-df = pd.read_csv('train_sampling2.csv')
+df = pd.read_csv('train_sampling3.csv')
 
 
 def clear_data(df):
@@ -69,34 +69,57 @@ model.add(Dense(1,activation='sigmoid'))
 tensorboard = TensorBoard(log_dir='./logs', histogram_freq=0,
                           write_graph=True, write_images=False)
 
-batch_size = 128
-eopoch = 5
+batch_size = 256
+eopoch = 10
 # default = (lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
 model.fit(x_train,y_train,batch_size = batch_size,epochs=eopoch,validation_data=(x_val,y_val),callbacks=[tensorboard])
-#
+
+#  save model to json
+# code from "https://machinelearningmastery.com/save-load-keras-deep-learning-models/"
+json_string = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(json_string)
+model.save_weights('weights_256_10.h5')
+print("Saved model to disk")
+
+y_val['predict'] = model.predict(x_val,batch_size=batch_size,verbose=0)
+print(y_val.shape)
+y_val.to_csv('result_validation.csv')
+
+
+
+# print("start plt")
+# plt.hist(y_val)
+# plt.show()
+# #
 # score, acc = model.evaluate(x_val,y_val,batch_size=1024)
 # print('Test score:',score)
 # print('Test accuracy:',acc)
 
 
 # train_test
-x_test = pd.read_csv('train_test2.csv')
-x_test, y_test = clear_data(test)
+x_test = pd.read_csv('train_test3.csv')
+x_test, y_test = clear_data(x_test)
 
-score, acc = model.evaluate(x_test,y_test,batch_size=1024)
+score, acc = model.evaluate(x_test,y_test,batch_size=batch_size)
 print('Test score:',score)
 print('Test accuracy:',acc)
 
+y_test['predict'] = model.predict(x_test,batch_size=batch_size,verbose=0)
+y_test.to_csv('result_test.csv')
 
-
+# print(y_test.sum())
+# plt.hist(y_test)
+# plt.show()
 #
 #
-df_sub = pd.DataFrame()
+
 #
 result_out = False
 if result_out == True:
+    df_sub = pd.DataFrame()
     x_test = pd.read_csv('test.csv')
     df_sub['click_id'] = x_test['click_id']
     x_test = x_test.drop(columns=['click_id','click_time'], axis=1)
